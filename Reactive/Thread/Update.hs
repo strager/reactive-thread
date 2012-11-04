@@ -10,6 +10,7 @@ module Reactive.Thread.Update
   , yield
 
   , forever
+  , foreverT
   ) where
 
 -- import Control.Applicative
@@ -61,6 +62,12 @@ query = Update . lift . readDumbSTMVar . unUpdateVar
 forever :: Update o a -> Update o b
 forever m = Control.Monad.forever
   $ Update (lift blockRead) >> m
+
+foreverT
+  :: (Monad (m (Update o)), MonadTrans m)
+  => m (Update o) a -> m (Update o) b
+foreverT m = Control.Monad.forever
+  $ lift (Update (lift blockRead)) >> m
 
 -- | Runs an 'Update' in the 'IO' monad.
 runUpdate :: Update () a -> IO a
