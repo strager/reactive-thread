@@ -73,7 +73,7 @@ cachedEvents = do
   VarCache vars <- get
   return $ map cacheUpdateEvent vars
 
-newtype IOThread a = IOThread (StateT VarCache IO a)
+newtype DumbSTM a = DumbSTM (StateT VarCache IO a)
   deriving
     ( Monad
     , Functor
@@ -81,30 +81,30 @@ newtype IOThread a = IOThread (StateT VarCache IO a)
     , MonadIO
     )
 
-instance MonadParallel IOThread where
+instance MonadParallel DumbSTM where
   bindM2 = error "bindM2: TODO"
 
-instance MonadFork IOThread where
+instance MonadFork DumbSTM where
   forkExec m = do
-    joiner <- liftIO $ forkExec (runIOThread m)
+    joiner <- liftIO $ forkExec (runDumbSTM m)
     return $ liftIO joiner
 
-runIOThread :: IOThread a -> IO a
-runIOThread (IOThread m) = evalStateT m emptyCache
+runDumbSTM :: DumbSTM a -> IO a
+runDumbSTM (DumbSTM m) = evalStateT m emptyCache
 
-instance NewVar TEventVar IOThread where
-  newVar = IOThread . liftIO . atomically . newTEventVar
+instance NewVar TEventVar DumbSTM where
+  newVar = DumbSTM . liftIO . atomically . newTEventVar
 
-readVar :: TEventVar a -> IOThread a
-readVar var = IOThread $ readCacheValue var >>= \ mX -> case mX of
+readVar :: TEventVar a -> DumbSTM a
+readVar var = DumbSTM $ readCacheValue var >>= \ mX -> case mX of
   Just x -> return x
   Nothing -> do
     (x, event) <- liftIO . atomically $ readTEventVar var
     addCache var x event
     return x
 
-instance WriteVar TEventVar IOThread where
-  writeVar var x = IOThread $ do
+instance WriteVar TEventVar DumbSTM where
+  writeVar var x = DumbSTM $ do
     unCache var
     event <- liftIO . atomically $ writeTEventVar var x
     addCache var x event
@@ -114,8 +114,8 @@ foldl1Default
 foldl1Default _ f (x:xs) = foldl f x xs
 foldl1Default d _ [] = d
 
-blockRead :: IOThread ()
-blockRead = IOThread $ do
+blockRead :: DumbSTM ()
+blockRead = DumbSTM $ do
   events <- cachedEvents
   put emptyCache
   liftIO . atomically

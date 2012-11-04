@@ -8,7 +8,7 @@ import DumbSTM
 import TEventVar
 import VarSource
 
-type T o = Thread TEventVar o IOThread
+type T o = Thread TEventVar o DumbSTM
 
 -- Stolen from Network.CGI.Protocol in package 'cgi'.
 -- BSD license, (c) Bjorn Bringert 2006.
@@ -31,6 +31,6 @@ gameLoop = do
     liftIO $ putStrLn $ "You typed the number: " ++ show num
 
 main :: IO ()
-main = runIOThread $ do
+main = runDumbSTM $ do
   var <- newVar ()
   runThread var gameLoop
