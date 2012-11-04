@@ -13,6 +13,7 @@ import Control.Monad.Trans
 
 import VarSource
 
+-- | A thread of execution.
 data Thread v o m a where
   Pure :: a -> Thread v o m a
   Lift :: m (Thread v o m a) -> Thread v o m a
@@ -44,6 +45,8 @@ instance MonadTrans (Thread v o) where
 instance (MonadIO m) => MonadIO (Thread v o m) where
   liftIO = lift . liftIO
 
+-- | Creates a new thread which executes in parallel,
+-- returning the forked thread's output variable.
 fork
   :: (Functor m, Monad m, NewVar v m)
   => b                   -- ^ Initial value.
@@ -53,12 +56,13 @@ fork z m = do
   var <- lift $ newVar z
   Fork (void m) var (Pure var)
 
+-- | Yields a value to this thread's output variable.
 yield :: (Monad m) => o -> Thread v o m ()
 yield x = Yield x (return ())
 
+-- | Executes a thread in the parent monad.
 runThread
   :: ( MonadFork m
-     , NewVar v m
      , WriteVar v m
      )
   => v o             -- ^ Output variable.

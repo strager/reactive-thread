@@ -9,19 +9,23 @@ module TEvent
 import Control.Applicative
 import Control.Concurrent.STM
 
+-- | A signal which, when fired, notifies all observers and
+-- remains fired for new observers.
+newtype TEvent = TEvent (TVar (Maybe [TMVar ()]))
+  deriving (Eq)
 -- If 'Nothing', the event has fired.
 --
 -- If 'Just', contained is a list of handlers to be notified
 -- when the event fires.
-newtype TEvent = TEvent (TVar (Maybe [TMVar ()]))
-  deriving (Eq)
 
 fromMaybe_ :: (Applicative m) => (a -> m ()) -> Maybe a -> m ()
 fromMaybe_ = maybe (pure ())
 
+-- | Creates a new, unfired 'TEvent'.
 newTEvent :: STM (TEvent)
 newTEvent = TEvent <$> newTVar (Just [])
 
+-- | Creates a new, already-fired 'TEvent'.
 newFiredTEvent :: STM (TEvent)
 newFiredTEvent = TEvent <$> newTVar Nothing
 

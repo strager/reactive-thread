@@ -14,6 +14,7 @@ import TEvent
 newtype TEventVar a = TEventVar (TVar (a, TEvent))
   deriving (Eq)
 
+-- | Creates a new 'TEventVar' with an initial value.
 newTEventVar :: a -> STM (TEventVar a)
 newTEventVar x = do
   event <- newTEvent
