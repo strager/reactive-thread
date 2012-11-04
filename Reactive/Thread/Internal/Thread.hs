@@ -8,8 +8,9 @@ module Reactive.Thread.Internal.Thread
   ) where
 
 import Control.Monad
+import Control.Monad.IO.Class
 import Control.Monad.Parallel
-import Control.Monad.Trans
+import Control.Monad.Trans.Class
 
 import Reactive.Thread.Internal.VarSource
 

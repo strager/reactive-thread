@@ -1,0 +1,27 @@
+name: reactive-thread
+version: 0.2.0.0
+synopsis: Reactive programming via imperative threads
+license: BSD3
+license-file: LICENSE
+author: Matt "strager" Glazar
+maintainer: strager.nds@gmail.com
+category: FRP
+build-type: Simple
+cabal-version: >=1.8
+
+description:
+  TODO Description
+
+library
+  exposed-modules:
+    Reactive.Thread,
+    Reactive.Thread.Update
+
+  build-depends:
+    base == 4.5.*,
+    monad-parallel,
+    stm,
+    transformers
+
+  ghc-options:
+    -Wall

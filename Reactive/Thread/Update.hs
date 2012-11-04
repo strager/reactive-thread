@@ -14,7 +14,8 @@ module Reactive.Thread.Update
 
 -- import Control.Applicative
 import Control.Monad hiding (forever)
-import Control.Monad.Trans
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Class
 
 import qualified Control.Monad
 

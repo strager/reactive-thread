@@ -18,7 +18,8 @@ import Control.Applicative
 import Control.Concurrent.STM
 import Control.Monad
 import Control.Monad.Parallel
-import Control.Monad.State
+import Control.Monad.Trans.State
+import Control.Monad.IO.Class
 import Data.List
 
 import Control.Concurrent.STM.TEvent
