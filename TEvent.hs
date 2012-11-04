@@ -1,7 +1,8 @@
 module TEvent
   ( TEvent
-  , fire
-  , wait
+  , newTEvent
+  , fireTEvent
+  , blockTEvent
   ) where
 
 import Control.Applicative
@@ -13,21 +14,22 @@ import Control.Concurrent.STM
 -- when the event fires.
 newtype TEvent = TEvent (TVar (Maybe [TMVar ()]))
 
-readWriteTVar :: TVar a -> a -> STM a
-readWriteTVar var x = readTVar var <* writeTVar var x
-
 fromMaybe_ :: (Applicative m) => (a -> m ()) -> Maybe a -> m ()
 fromMaybe_ = maybe (pure ())
 
--- | Fires an event, notifying all blocked listeners.
-fire :: TEvent -> STM ()
-fire (TEvent event)
-  = readWriteTVar event Nothing >>= fromMaybe_
+newTEvent :: STM (TEvent)
+newTEvent = TEvent <$> newTVar (Just [])
+
+-- | Wakes up all listeners blocking (via 'blockTEvent') on
+-- the event.
+fireTEvent :: TEvent -> STM ()
+fireTEvent (TEvent event)
+  = swapTVar event Nothing >>= fromMaybe_
     (mapM_ $ \ var -> putTMVar var ())
 
 -- | Waits for an event to be fired.
-wait :: TEvent -> STM ()
-wait (TEvent event)
+blockTEvent :: TEvent -> STM ()
+blockTEvent (TEvent event)
   = readTVar event >>= fromMaybe_ (\ listeners -> do
       myListener <- newEmptyTMVar
       writeTVar event $ Just (myListener : listeners)
