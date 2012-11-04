@@ -1,6 +1,11 @@
 {-# LANGUAGE GADTs #-}
 
-module Thread where
+module Thread
+  ( Thread
+  , fork
+  , yield
+  , runThread
+  ) where
 
 import Control.Monad
 import Control.Monad.Parallel
@@ -11,11 +16,7 @@ import VarSource
 data Thread v o m a where
   Pure :: a -> Thread v o m a
   Lift :: m (Thread v o m a) -> Thread v o m a
-
-  Yield
-    :: o               -- ^ Value to yield.
-    -> Thread v o m a  -- ^ Rest.
-    -> Thread v o m a
+  Yield :: o -> Thread v o m a -> Thread v o m a
 
   Fork
     :: Thread v b m ()  -- ^ Thread computation.
