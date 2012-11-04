@@ -1,6 +1,7 @@
 module TEvent
   ( TEvent
   , newTEvent
+  , newFiredTEvent
   , fireTEvent
   , blockTEvent
   ) where
@@ -20,6 +21,9 @@ fromMaybe_ = maybe (pure ())
 
 newTEvent :: STM (TEvent)
 newTEvent = TEvent <$> newTVar (Just [])
+
+newFiredTEvent :: STM (TEvent)
+newFiredTEvent = TEvent <$> newTVar Nothing
 
 -- | Wakes up all listeners blocking (via 'blockTEvent') on
 -- the event.

@@ -2,7 +2,17 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
 
-module DumbSTM where
+module DumbSTM
+  ( DumbSTMVar
+  , DumbSTM
+  , runDumbSTM
+
+  , newDumbSTMVar
+  , readDumbSTMVar
+  , writeDumbSTMVar
+
+  , blockRead
+  ) where
 
 import Any
 import TEvent
@@ -115,8 +125,9 @@ readDumbSTMVar var = DumbSTM $ do
 writeDumbSTMVar :: DumbSTMVar a -> a -> DumbSTM ()
 writeDumbSTMVar var x = DumbSTM $ do
   unCache var
-  event <- liftIO . atomically
-    $ writeTEventVar (unDumbSTMVar var) x
+  event <- liftIO . atomically $ do
+    _ <- writeTEventVar (unDumbSTMVar var) x
+    newFiredTEvent
   addCache var x event
 
 foldl1Default
