@@ -31,9 +31,12 @@ newtype Update o a = Update
     , MonadIO
     )
 
+-- | A read-only handle to a thread's output variable.
 newtype UpdateVar a = UpdateVar
   { unUpdateVar :: DumbSTMVar a }
 
+-- | Executes an 'Update' in parallel, returning a var
+-- representing the thread's output variable.
 parallel 
   :: b
   -> Update b a
@@ -41,16 +44,24 @@ parallel
 parallel z m = Update . liftM UpdateVar
   $ Thread.fork z (unUpdate m)
 
+-- | Mutates this thread's output variable.
 yield :: o -> Update o ()
 yield = Update . Thread.yield
 
+-- | Reads a thread's output variable.
+--
+-- Reads are cached and tracked; see 'forever'.
 query :: UpdateVar a -> Update o a
 query = Update . lift . readDumbSTMVar . unUpdateVar
 
+-- | Runs an 'Update' in a loop forever.  Between each loop,
+-- execution is blocked until a 'query'ied variable is
+-- modified (since it was last read).
 forever :: Update o a -> Update o b
 forever m = Control.Monad.forever
   $ Update (lift blockRead) >> m
 
+-- | Runs an 'Update' in the 'IO' monad.
 runUpdate :: Update () a -> IO a
 runUpdate m = runDumbSTM $ do
   var <- newDumbSTMVar ()
