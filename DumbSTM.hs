@@ -1,10 +1,10 @@
-{-# LANGUAGE GADTs #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
 
-module IOThread where
+module DumbSTM where
 
+import Any
 import TEvent
 import TEventVar
 import VarSource
@@ -15,27 +15,17 @@ import Control.Monad
 import Control.Monad.Parallel
 import Control.Monad.State
 import Data.List
-import Unsafe.Coerce
-
-unAnyVar :: AnyVar v -> v a
-unAnyVar (AnyVar x) = unsafeCoerce x
-
-data AnyValue where
-  AnyValue :: a -> AnyValue
-
-unAnyValue :: AnyValue -> a
-unAnyValue (AnyValue x) = unsafeCoerce x
 
 newtype VarCache = VarCache [CacheEntry]
 
 data CacheEntry = CacheEntry
-  { cacheToken :: !(AnyVar TEventVar)
+  { cacheToken :: !(Any1 TEventVar)
   , cacheUpdateEvent :: !TEvent
-  , cacheValue :: AnyValue
+  , cacheValue :: Any0
   }
 
 entryIsVar :: forall a. TEventVar a -> CacheEntry -> Bool
-entryIsVar var entry = var == unAnyVar (cacheToken entry)
+entryIsVar var entry = var == any1 (cacheToken entry)
 
 emptyCache :: VarCache
 emptyCache = VarCache []
@@ -55,9 +45,9 @@ addCache var x event
     -> VarCache $ cacheEntry : entries
   where
     cacheEntry = CacheEntry
-      { cacheToken = AnyVar var
+      { cacheToken = Any1 var
       , cacheUpdateEvent = event
-      , cacheValue = AnyValue x
+      , cacheValue = Any0 x
       }
 
 readCacheEntry
@@ -73,7 +63,7 @@ readCacheValue
   => TEventVar a
   -> StateT VarCache m (Maybe a)
 readCacheValue
-  = liftM (fmap (unAnyValue . cacheValue))
+  = liftM (fmap (any0 . cacheValue))
   . readCacheEntry
 
 cachedEvents
@@ -105,13 +95,13 @@ runIOThread (IOThread m) = evalStateT m emptyCache
 instance NewVar TEventVar IOThread where
   newVar = IOThread . liftIO . atomically . newTEventVar
 
-instance ReadVar TEventVar IOThread where
-  readVar var = IOThread $ readCacheValue var >>= \ mX -> case mX of
-    Just x -> return x
-    Nothing -> do
-      (x, event) <- liftIO . atomically $ readTEventVar var
-      addCache var x event
-      return x
+readVar :: TEventVar a -> IOThread a
+readVar var = IOThread $ readCacheValue var >>= \ mX -> case mX of
+  Just x -> return x
+  Nothing -> do
+    (x, event) <- liftIO . atomically $ readTEventVar var
+    addCache var x event
+    return x
 
 instance WriteVar TEventVar IOThread where
   writeVar var x = IOThread $ do

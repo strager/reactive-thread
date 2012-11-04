@@ -4,7 +4,7 @@ import Data.Maybe
 import Control.Monad
 import Control.Monad.Trans
 import Thread
-import IOThread
+import DumbSTM
 import TEventVar
 import VarSource
 
