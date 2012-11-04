@@ -12,6 +12,7 @@ import TEvent
 
 -- | A var which fires an event when modified.
 newtype TEventVar a = TEventVar (TVar (a, TEvent))
+  deriving (Eq)
 
 newTEventVar :: a -> STM (TEventVar a)
 newTEventVar x = do
@@ -25,8 +26,9 @@ readTEventVar (TEventVar var) = readTVar var
 
 -- | Writes the value of a 'TEventVar', notifying readers
 -- that the var has been modified.
-writeTEventVar :: TEventVar a -> a -> STM ()
+writeTEventVar :: TEventVar a -> a -> STM TEvent
 writeTEventVar (TEventVar var) x = do
   event <- newTEvent
   (_old, oldEvent) <- swapTVar var (x, event)
   fireTEvent oldEvent
+  return event

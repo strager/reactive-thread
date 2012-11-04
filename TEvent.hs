@@ -13,6 +13,7 @@ import Control.Concurrent.STM
 -- If 'Just', contained is a list of handlers to be notified
 -- when the event fires.
 newtype TEvent = TEvent (TVar (Maybe [TMVar ()]))
+  deriving (Eq)
 
 fromMaybe_ :: (Applicative m) => (a -> m ()) -> Maybe a -> m ()
 fromMaybe_ = maybe (pure ())
