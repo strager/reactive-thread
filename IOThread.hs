@@ -7,17 +7,14 @@ module IOThread where
 
 import TEvent
 import TEventVar
-import Thread
 import VarSource
 
-import Control.Monad.Parallel
-import Data.List
-import Data.Maybe
-import Control.Monad
-import Control.Monad.State
-import Control.Monad.Trans
 import Control.Applicative
 import Control.Concurrent.STM
+import Control.Monad
+import Control.Monad.Parallel
+import Control.Monad.State
+import Data.List
 import Unsafe.Coerce
 
 unAnyVar :: AnyVar v -> v a
