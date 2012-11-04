@@ -45,10 +45,6 @@ entryIsVar var entry = var == any1 (cacheToken entry)
 emptyCache :: VarCache
 emptyCache = VarCache []
 
-unCache :: (Monad m) => DumbSTMVar a -> StateT VarCache m ()
-unCache var = modify $ \ (VarCache entries) -> VarCache
-  $ filter (not . entryIsVar var) entries
-
 addCache
   :: (Monad m)
   => DumbSTMVar a
@@ -124,12 +120,9 @@ readDumbSTMVar var = DumbSTM $ do
       return x
 
 writeDumbSTMVar :: DumbSTMVar a -> a -> DumbSTM ()
-writeDumbSTMVar var x = DumbSTM $ do
-  unCache var
-  event <- liftIO . atomically $ do
-    _ <- writeTEventVar (unDumbSTMVar var) x
-    newFiredTEvent
-  addCache var x event
+writeDumbSTMVar var x = DumbSTM
+  . void . liftIO . atomically
+    $ writeTEventVar (unDumbSTMVar var) x
 
 foldl1Default
   :: a -> (a -> a -> a) -> [a] -> a
