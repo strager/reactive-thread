@@ -5,10 +5,9 @@ import Control.Monad
 import Control.Monad.Trans
 import Thread
 import DumbSTM
-import TEventVar
 import VarSource
 
-type T o = Thread TEventVar o DumbSTM
+type T o = Thread DumbSTMVar o DumbSTM
 
 -- Stolen from Network.CGI.Protocol in package 'cgi'.
 -- BSD license, (c) Bjorn Bringert 2006.
@@ -27,7 +26,7 @@ gameLoop = do
   curNumber <- fork 0 readCurrentNumber
   forever $ do
     lift blockRead
-    num <- lift $ readVar curNumber
+    num <- lift $ readDumbSTMVar curNumber
     liftIO $ putStrLn $ "You typed the number: " ++ show num
 
 main :: IO ()

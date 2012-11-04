@@ -16,27 +16,31 @@ import Control.Monad.Parallel
 import Control.Monad.State
 import Data.List
 
+newtype DumbSTMVar a = DumbSTMVar
+  { unDumbSTMVar :: TEventVar a }
+  deriving (Eq)
+
 newtype VarCache = VarCache [CacheEntry]
 
 data CacheEntry = CacheEntry
-  { cacheToken :: !(Any1 TEventVar)
+  { cacheToken :: !(Any1 DumbSTMVar)
   , cacheUpdateEvent :: !TEvent
   , cacheValue :: Any0
   }
 
-entryIsVar :: forall a. TEventVar a -> CacheEntry -> Bool
+entryIsVar :: forall a. DumbSTMVar a -> CacheEntry -> Bool
 entryIsVar var entry = var == any1 (cacheToken entry)
 
 emptyCache :: VarCache
 emptyCache = VarCache []
 
-unCache :: (Monad m) => TEventVar a -> StateT VarCache m ()
+unCache :: (Monad m) => DumbSTMVar a -> StateT VarCache m ()
 unCache var = modify $ \ (VarCache entries) -> VarCache
   $ filter (not . entryIsVar var) entries
 
 addCache
   :: (Monad m)
-  => TEventVar a
+  => DumbSTMVar a
   -> a
   -> TEvent
   -> StateT VarCache m ()
@@ -52,7 +56,7 @@ addCache var x event
 
 readCacheEntry
   :: (Monad m)
-  => TEventVar a
+  => DumbSTMVar a
   -> StateT VarCache m (Maybe CacheEntry)
 readCacheEntry var = do
   VarCache vars <- get
@@ -60,7 +64,7 @@ readCacheEntry var = do
 
 readCacheValue
   :: (Monad m)
-  => TEventVar a
+  => DumbSTMVar a
   -> StateT VarCache m (Maybe a)
 readCacheValue
   = liftM (fmap (any0 . cacheValue))
@@ -92,22 +96,28 @@ instance MonadFork DumbSTM where
 runDumbSTM :: DumbSTM a -> IO a
 runDumbSTM (DumbSTM m) = evalStateT m emptyCache
 
-instance NewVar TEventVar DumbSTM where
-  newVar = DumbSTM . liftIO . atomically . newTEventVar
+newDumbSTMVar :: a -> DumbSTM (DumbSTMVar a)
+newDumbSTMVar
+  = DumbSTM . liftIO . atomically
+  . liftM DumbSTMVar . newTEventVar
 
-readVar :: TEventVar a -> DumbSTM a
-readVar var = DumbSTM $ readCacheValue var >>= \ mX -> case mX of
-  Just x -> return x
-  Nothing -> do
-    (x, event) <- liftIO . atomically $ readTEventVar var
-    addCache var x event
-    return x
+readDumbSTMVar :: DumbSTMVar a -> DumbSTM a
+readDumbSTMVar var = DumbSTM $ do
+  mX <- readCacheValue var
+  case mX of
+    Just x -> return x
+    Nothing -> do
+      (x, event) <- liftIO . atomically
+        . readTEventVar $ unDumbSTMVar var
+      addCache var x event
+      return x
 
-instance WriteVar TEventVar DumbSTM where
-  writeVar var x = DumbSTM $ do
-    unCache var
-    event <- liftIO . atomically $ writeTEventVar var x
-    addCache var x event
+writeDumbSTMVar :: DumbSTMVar a -> a -> DumbSTM ()
+writeDumbSTMVar var x = DumbSTM $ do
+  unCache var
+  event <- liftIO . atomically
+    $ writeTEventVar (unDumbSTMVar var) x
+  addCache var x event
 
 foldl1Default
   :: a -> (a -> a -> a) -> [a] -> a
@@ -121,3 +131,9 @@ blockRead = DumbSTM $ do
   liftIO . atomically
     . foldl1Default (return ()) orElse
     $ map blockTEvent events
+
+instance NewVar DumbSTMVar DumbSTM where
+  newVar = newDumbSTMVar
+
+instance WriteVar DumbSTMVar DumbSTM where
+  writeVar = writeDumbSTMVar
