@@ -8,7 +8,7 @@ import IOThread
 import TEventVar
 import VarSource
 
-type T o = Thread TEventVar () o IOThread
+type T o = Thread TEventVar o IOThread
 
 -- Stolen from Network.CGI.Protocol in package 'cgi'.
 -- BSD license, (c) Bjorn Bringert 2006.
