@@ -6,7 +6,7 @@ import Control.Monad.Trans
 
 import qualified Control.Monad
 
-import Update
+import Reactive.Thread
 
 -- Stolen from Network.CGI.Protocol in package 'cgi'.
 -- BSD license, (c) Bjorn Bringert 2006.

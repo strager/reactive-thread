@@ -1,4 +1,4 @@
-module TEvent
+module Control.Concurrent.STM.TEvent
   ( TEvent
   , newTEvent
   , newFiredTEvent

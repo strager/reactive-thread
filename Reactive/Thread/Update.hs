@@ -1,6 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 
-module Update
+module Reactive.Thread.Update
   ( Update
   , runUpdate
 
@@ -18,9 +18,9 @@ import Control.Monad.Trans
 
 import qualified Control.Monad
 
-import DumbSTM
+import Reactive.Thread.Internal.DumbSTM
 
-import qualified Thread
+import qualified Reactive.Thread.Internal.Thread as Thread
 
 newtype Update o a = Update
   { unUpdate :: Thread.Thread DumbSTMVar o DumbSTM a }

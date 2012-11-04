@@ -2,7 +2,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE Rank2Types #-}
 
-module DumbSTM
+module Reactive.Thread.Internal.DumbSTM
   ( DumbSTMVar
   , DumbSTM
   , runDumbSTM
@@ -14,17 +14,17 @@ module DumbSTM
   , blockRead
   ) where
 
-import Any
-import TEvent
-import TEventVar
-import VarSource
-
 import Control.Applicative
 import Control.Concurrent.STM
 import Control.Monad
 import Control.Monad.Parallel
 import Control.Monad.State
 import Data.List
+
+import Control.Concurrent.STM.TEvent
+import Control.Concurrent.STM.TEventVar
+import Data.Any
+import Reactive.Thread.Internal.VarSource
 
 newtype DumbSTMVar a = DumbSTMVar
   { unDumbSTMVar :: TEventVar a }

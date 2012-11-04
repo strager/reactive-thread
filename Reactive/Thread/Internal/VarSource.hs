@@ -1,6 +1,6 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 
-module VarSource
+module Reactive.Thread.Internal.VarSource
   ( NewVar(..)
   , WriteVar(..)
   ) where

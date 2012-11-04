@@ -1,4 +1,4 @@
-module TEventVar
+module Control.Concurrent.STM.TEventVar
   ( TEventVar
   , newTEventVar
   , readTEventVar
@@ -8,7 +8,7 @@ module TEventVar
 import Control.Applicative
 import Control.Concurrent.STM
 
-import TEvent
+import Control.Concurrent.STM.TEvent
 
 -- | A var which fires an event when modified.
 newtype TEventVar a = TEventVar (TVar (a, TEvent))

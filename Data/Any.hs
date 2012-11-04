@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs #-}
 
-module Any
+module Data.Any
   ( Any0(..)
   , any0
 

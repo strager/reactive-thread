@@ -1,6 +1,6 @@
 {-# LANGUAGE GADTs #-}
 
-module Thread
+module Reactive.Thread.Internal.Thread
   ( Thread
   , fork
   , yield
@@ -11,7 +11,7 @@ import Control.Monad
 import Control.Monad.Parallel
 import Control.Monad.Trans
 
-import VarSource
+import Reactive.Thread.Internal.VarSource
 
 -- | A thread of execution.
 data Thread v o m a where
