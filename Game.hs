@@ -87,7 +87,7 @@ player
   -> Update o (UpdateVar Sprite)
 player timer keyChan = parallel (Sprite 0 0) $ do
   xVel <- keyboard keyChan 0 [(SDL.SDLK_LEFT, -1), (SDL.SDLK_RIGHT, 1)]
-  yVel <- keyboard keyChan 0 [(SDL.SDLK_DOWN, -1), (SDL.SDLK_UP, 1)]
+  yVel <- keyboard keyChan 0 [(SDL.SDLK_UP, -1), (SDL.SDLK_DOWN, 1)]
   x <- velocity 0 timer xVel
   y <- velocity 0 timer yVel
 
@@ -97,21 +97,42 @@ player timer keyChan = parallel (Sprite 0 0) $ do
       `ap` query y
     yield sprite
 
-gameLoop :: KeyboardChan -> Thread ()
-gameLoop keyChan = do
+gameLoop :: SDL.Surface -> KeyboardChan -> Thread ()
+gameLoop surface keyChan = do
   timer <- constantTick 60
   p <- player timer keyChan
   forever $ do
     sprite <- query p
-    liftIO $ print sprite
+
+    liftIO $ do
+      let format = SDL.surfaceGetPixelFormat surface
+      black <- SDL.mapRGB format 0 0 0
+      void $ SDL.fillRect surface Nothing black
+
+      drawSprite surface sprite
+      SDL.flip surface
+
+drawSprite :: SDL.Surface -> Sprite -> IO ()
+drawSprite surface (Sprite x y) = do
+  let format = SDL.surfaceGetPixelFormat surface
+  color <- SDL.mapRGB format 0 128 255
+  void $ SDL.fillRect surface (Just region) color
+
+  where
+    region = SDL.Rect
+      (floor x) (floor y)
+      width height
+
+    width = 32
+    height = 32
 
 main :: IO ()
 main = SDL.withInit [SDL.InitEverything] $ do
-  _surface <- SDL.setVideoMode initialWidth initialHeight 32
+  surface <- SDL.setVideoMode initialWidth initialHeight 32
     [SDL.HWSurface, SDL.Resizable, SDL.RLEAccel, SDL.DoubleBuf]
 
   keyboardChan <- newChan
-  gameThreadID <- forkIO $ runUpdate (gameLoop keyboardChan)
+  gameThreadID <- forkIO $ runUpdate (gameLoop surface keyboardChan)
   _ <- eventLoop keyboardChan
   killThread gameThreadID
 
