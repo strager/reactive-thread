@@ -7,7 +7,7 @@
 -- 5. Push branches and tags.
 
 name: reactive-thread
-version: 0.2.0.0
+version: 0.3.0.0
 
 author: Matt "strager" Glazar
 build-type: Simple
@@ -25,7 +25,7 @@ description:
 source-repository this
   type: git
   location: https://github.com/strager/reactive-thread.git
-  tag: 0.2.0.0
+  tag: 0.3.0.0
 
 library
   exposed-modules:
