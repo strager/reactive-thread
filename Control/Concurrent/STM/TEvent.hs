@@ -1,9 +1,13 @@
+{-# LANGUAGE CPP #-}
+
 module Control.Concurrent.STM.TEvent
   ( TEvent
   , newTEvent
   , newFiredTEvent
   , fireTEvent
   , blockTEvent
+
+  , swapTVar
   ) where
 
 import Control.Applicative
@@ -28,6 +32,11 @@ newTEvent = TEvent <$> newTVar (Just [])
 -- | Creates a new, already-fired 'TEvent'.
 newFiredTEvent :: STM (TEvent)
 newFiredTEvent = TEvent <$> newTVar Nothing
+
+#if !MIN_VERSION_stm(2, 3, 0)
+swapTVar :: TVar a -> a -> STM a
+swapTVar var x = readTVar var <* writeTVar var x
+#endif
 
 -- | Wakes up all listeners blocking (via 'blockTEvent') on
 -- the event.
