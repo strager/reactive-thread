@@ -74,9 +74,15 @@ velocity z timeVar velVar = parallel z $ do
       time' <- lift $ query timeVar
       vel <- lift $ query velVar
 
-      let pos' = pos + (time' - time) * vel
+      let dt = time' - time
+      pos' <- if dt > 0 && vel /= 0
+        then do
+          let pos' = pos + dt * vel
+          lift $ yield pos'
+          return pos'
+        else return pos
+
       put (pos', time')
-      lift $ yield pos'
 
 data Sprite = Sprite !Double !Double
   deriving (Show)
