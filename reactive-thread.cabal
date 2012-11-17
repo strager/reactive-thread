@@ -20,6 +20,19 @@ library
   build-depends:
     base == 4.5.*,
     monad-parallel,
+    stm,
+    transformers
+
+  ghc-options:
+    -Wall
+
+executable example-sdl
+  main-is: examples/sdl/Main.hs
+
+  build-depends:
+    base,
+    monad-parallel,
+    reactive-thread,
     SDL,
     stm,
     transformers

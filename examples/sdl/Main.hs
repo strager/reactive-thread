@@ -1,10 +1,11 @@
-module Game where
+module Main where
 
 -- import Control.Applicative
 import Control.Concurrent.Chan
 import Control.Concurrent hiding (yield)
 import Control.Monad hiding (forever)
-import Control.Monad.Trans
+import Control.Monad.IO.Class
+import Control.Monad.Trans.Class
 import Control.Monad.Trans.State
 import Data.List
 
