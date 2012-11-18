@@ -153,6 +153,8 @@ main = SDL.withInit [SDL.InitEverything] $ do
 
         handleEvent event = case event of
           SDL.NoEvent -> SDL.waitEvent >>= handleEvent
+          SDL.KeyDown SDL.Keysym { SDL.symKey = SDL.SDLK_ESCAPE }
+            -> return ()  -- Stop.
           SDL.KeyDown sym -> do
             writeChan keyboardChan (Down, sym)
             pollEvent
