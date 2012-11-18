@@ -12,6 +12,11 @@ cabal-version: >=1.8
 description:
   TODO Description
 
+flag profile
+  default: False
+  description:
+    Enables profiling (i.e. -fprof-auto).
+
 library
   exposed-modules:
     Reactive.Thread,
@@ -26,6 +31,10 @@ library
   ghc-options:
     -Wall
 
+  if flag(profile)
+    ghc-options:
+      -fprof-auto
+
 executable example-sdl
   main-is: examples/sdl/Main.hs
 
@@ -39,3 +48,4 @@ executable example-sdl
 
   ghc-options:
     -Wall
+    -rtsopts
